@@ -8,17 +8,21 @@ using NUnit.Framework;
 
 namespace FakeStoreApi.Tests;
 
+// Test fixture for cart API operations
 [TestFixture]
 internal class CartApiTests
 {
+    // Cart API helper for testing
     private readonly ICartApiHelper _cartApiHelper;
 
+    // Constructor initializes the test container and resolves dependencies
     public CartApiTests()
     {
         TestContainer.Initialize();
         _cartApiHelper = TestContainer.TestHost.Services.GetService<ICartApiHelper>()!;
     }
 
+    // Tests retrieving all carts
     [Test]
     public async Task GetAllCartsAsync_ShouldReturnCarts()
     {
@@ -28,6 +32,7 @@ internal class CartApiTests
         carts.ToList().LogToTable();
     }
 
+    // Tests adding a new cart
     [Test]
     public async Task AddCartAsync_ShouldAddCart()
     {
@@ -44,7 +49,8 @@ internal class CartApiTests
 
         var response = await _cartApiHelper.AddCartAsync(expected);
 
-        var actual = expected; // Since API doesn't persist, mock the response
+        // Since API doesn't persist, mock the response
+        var actual = expected; 
 
         actual.Should().NotBeNull();
         actual.UserId.Should().Be(expected.UserId);
@@ -53,6 +59,7 @@ internal class CartApiTests
         actual.LogAsJson();
     }
 
+    // Tests retrieving a cart by ID
     [Test]
     public async Task GetCartByIdAsync_ShouldReturnCart()
     {
@@ -66,6 +73,7 @@ internal class CartApiTests
         expected.LogAsJson();
     }
 
+    // Tests updating a cart
     [Test]
     public async Task UpdateCartAsync_ShouldUpdateCart()
     {
@@ -80,12 +88,14 @@ internal class CartApiTests
 
         var response = await _cartApiHelper.UpdateCartAsync(expected.Id, expected);
 
-        var actual = expected; // Since API doesn't persist, mock the response
+        // Since API doesn't persist, mock the response
+        var actual = expected; 
 
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
     }
 
+    // Tests deleting a cart
     [Test]
     public async Task DeleteCartAsync_ShouldDeleteCart()
     {
@@ -102,7 +112,6 @@ internal class CartApiTests
         var response = await _cartApiHelper.AddCartAsync(expected);
 
         var result = await _cartApiHelper.DeleteCartAsync(response.Id);
-
         result.Should().BeTrue();
 
         var actual = await _cartApiHelper.GetCartByIdAsync(response.Id);

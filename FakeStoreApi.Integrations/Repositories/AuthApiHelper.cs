@@ -2,30 +2,28 @@
 using FakeStoreApi.Integrations.Entities;
 using FakeStoreApi.Integrations.Repositories.Base;
 using Microsoft.Extensions.Options;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
 namespace FakeStoreApi.Integrations.Repositories;
-internal class AuthApiHelper : IAuthApiHelper
-{
-    private readonly HttpClient client;
-    private readonly string url;
 
-    public AuthApiHelper(IOptions<ApiConfig> config)
+// Helper for authentication API operations
+internal class AuthApiHelper : BaseApiHttpHelper<LoginResponse>, IAuthApiHelper
+{
+    // Constructor sets up HttpClient and base URL from config
+    public AuthApiHelper(HttpClient httpClient, IOptions<ApiConfig> config)
     {
-        url = $"{config.Value.FakeStoreApiUrl}/auth/login";
-        client = new HttpClient();
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        client = httpClient;
+        baseUrl = $"{config.Value.FakeStoreApiUrl}/auth/login";
     }
 
+    // Sends a login request and returns the response
     public async Task<LoginResponse?> LoginAsync(LoginRequest request)
     {
         var json = JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync(url, content);
+        var response = await client.PostAsync(baseUrl, content);
 
         if (!response.IsSuccessStatusCode)
             return null;

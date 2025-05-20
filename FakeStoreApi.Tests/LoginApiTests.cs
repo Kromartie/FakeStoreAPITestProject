@@ -7,21 +7,25 @@ using NUnit.Framework;
 
 namespace FakeStoreApi.Tests;
 
+// Test fixture for login authentication
 [TestFixture]
 public class LoginApiTests
 {
+    // Authentication API helper for testing
     private IAuthApiHelper _authApiHelper;
 
-    [SetUp]
-    public void Setup()
+    // Constructor initializes the test container and resolves dependencies
+    public LoginApiTests()
     {
         TestContainer.Initialize();
         _authApiHelper = TestContainer.TestHost.Services.GetService<IAuthApiHelper>()!;
     }
 
+    // Tests that login returns a valid token
     [Test]
     public async Task LoginAsync_ShouldLoginWithValidCredentials()
     {
+        // Create test login credentials
         var loginRequest = new LoginRequest
         {
             Username = "john_doe",
@@ -37,6 +41,7 @@ public class LoginApiTests
         response!.Token.Should().NotBeNullOrWhiteSpace();
     }
 
+    // Tests that login fails with invalid credentials
     [Test]
     public async Task LoginAsync_ShouldFailLoginWithInvalidCredentials()
     {

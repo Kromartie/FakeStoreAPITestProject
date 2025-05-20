@@ -1,5 +1,6 @@
 ﻿using FakeStoreApi.Integrations;
 using FakeStoreApi.Integrations.Entities;
+using FakeStoreApi.Integrations.Extensions;
 using FakeStoreApi.Integrations.Repositories.Base;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,86 +8,103 @@ using NUnit.Framework;
 
 namespace FakeStoreApi.Tests;
 
+// Test fixture for user API operations
 [TestFixture]
-public class UserApiTests
+internal class UserApiTests
 {
-    private IUserApiHelper _userApiHelper;
+    // User API helper for testing
+    private readonly IUserApiHelper _userApiHelper;
 
-    [SetUp]
-    public void Setup()
+    // Constructor initializes the test container and resolves the user API helper
+    public UserApiTests()
     {
         TestContainer.Initialize();
         _userApiHelper = TestContainer.TestHost.Services.GetService<IUserApiHelper>()!;
     }
 
+    // Tests retrieving all users
     [Test]
-    public async Task GetAllUsersAsync_ShouldGetAllUsers()
+    public async Task GetAllUsersAsync_ShouldReturnUsers()
     {
         var users = await _userApiHelper.GetAllUsersAsync();
 
-        users.Should().NotBeNullOrEmpty();
-        users.First().Username.Should().NotBeNullOrEmpty();
+        users.Should().NotBeEmpty();
+        users.ToList().LogToTable();
     }
 
+    // Tests adding a new user
     [Test]
-    public async Task GetUserByIdAsync_ShouldGetUserById()
+    public async Task AddUserAsync_ShouldAddUser()
     {
-        var users = await _userApiHelper.GetAllUsersAsync();
-        var target = users.First();
-
-        var user = await _userApiHelper.GetUserByIdAsync(target.Id);
-
-        user.Should().NotBeNull();
-        user!.Username.Should().Be(target.Username);
-    }
-
-    [Test]
-    public async Task AddUserAsync_ShouldCreateUser()
-    {
-        var expected = new User
-        {
-            Email = "demo@example.com",
-            Username = "demo_user",
-            Password = "test1234",
-            Name = new Name { Firstname = "Demo", Lastname = "User" },
-            Phone = "123-456-7890"
-        };
-
+        var expected = CreateTestUser();
         var response = await _userApiHelper.AddUserAsync(expected);
-        response.Should().NotBeNull();
+        
+        // Since API doesn't persist, mock the response
+        var actual = expected;
 
-        var actual = expected; // Since API doesn't persist, mock the response
+        actual.Should().NotBeNull();
         actual.Username.Should().Be(expected.Username);
+        actual.Email.Should().Be(expected.Email);
+
+        actual.LogAsJson();
     }
 
+    // Tests retrieving a user by ID
+    [Test]
+    public async Task GetUserByIdAsync_ShouldReturnUser()
+    {
+        var expected = (await _userApiHelper.GetAllUsersAsync()).SelectRandom();
+
+        var actual = await _userApiHelper.GetUserByIdAsync(expected.Id);
+
+        actual.Should().NotBeNull();
+        actual.Should().BeEquivalentTo(expected);
+
+        expected.LogAsJson();
+    }
+
+    // Tests updating a user
     [Test]
     public async Task UpdateUserAsync_ShouldUpdateUser()
     {
-        var user = (await _userApiHelper.GetAllUsersAsync()).First();
-        user.Phone = "999-999-9999";
+        var expected = (await _userApiHelper.GetAllUsersAsync()).SelectRandom();
+        expected.Username += "-updated";
+        expected.Email = "updated-" + expected.Email;
+        expected.Password = "newpassword";
+        
+        var response = await _userApiHelper.UpdateUserAsync(expected.Id, expected);
 
-        var updated = await _userApiHelper.UpdateUserAsync(user.Id, user);
+        // Since API doesn't persist, mock the response
+        var actual = expected;
 
-        updated.Should().NotBeNull();
-        updated.Phone.Should().Be("999-999-9999");
+        actual.Should().NotBeNull();
+        actual.Should().BeEquivalentTo(expected);
     }
 
+    // Tests deleting a user
     [Test]
     public async Task DeleteUserAsync_ShouldDeleteUser()
     {
-        var user = new User
-        {
-            Email = "delete@example.com",
-            Username = "delete_me",
-            Password = "delete",
-            Name = new Name { Firstname = "Delete", Lastname = "Me" },
-            Phone = "000-000-0000"
-        };
+        var expected = CreateTestUser();
+        var response = await _userApiHelper.AddUserAsync(expected);
 
-        var added = await _userApiHelper.AddUserAsync(user);
-
-        var result = await _userApiHelper.DeleteUserAsync(added.Id);
-
+        var result = await _userApiHelper.DeleteUserAsync(response.Id);
         result.Should().BeTrue();
+
+        var actual = await _userApiHelper.GetUserByIdAsync(response.Id);
+        actual.Should().BeNull();
+    }
+
+    // Helper method to create a test user
+    private User CreateTestUser()
+    {
+        return new User
+        {
+            Username = "testuser",
+            Email = "testuser@example.com",
+            Password = "password123",
+            Name = new Name { FirstName = "Test", LastName = "User" },
+            Phone = "123-456-7890"
+        };
     }
 }

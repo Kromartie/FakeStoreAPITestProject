@@ -8,33 +8,34 @@ using NUnit.Framework;
 
 namespace FakeStoreApi.Tests;
 
+// Test fixture for product API operations
 [TestFixture]
 internal class ProductApiTests
 {
+    // Product API helper for testing
     private readonly IProductApiHelper _productApiHelper;
 
+    // Constructor initializes the test container and resolves dependencies
     public ProductApiTests()
     {
         TestContainer.Initialize();
         _productApiHelper = TestContainer.TestHost.Services.GetService<IProductApiHelper>()!;
     }
 
+    // Tests retrieving all products
     [Test]
     public async Task GetAllProductsAsync_ShouldReturnProducts()
     {
-        // Act
         var products = await _productApiHelper.GetAllProductsAsync();
 
-        // Assert
         products.Should().NotBeEmpty();
         products.ToList().LogToTable();
     }
 
-
+    // Tests adding a new product
     [Test]
     public async Task AddProductAsync_ShouldAddProduct()
     {
-        // Arrange
         var expected = new Product
         {
             Id =  21,
@@ -45,32 +46,31 @@ internal class ProductApiTests
             Image = "https://example.com/image.jpg"
         };
 
-        // Act
         var response = await _productApiHelper.AddProductAsync(expected);
 
-        var actual = expected; // Since API doesn't persist, mock the response
+        // Since API doesn't persist, mock the response
+        var actual = expected; 
 
-        // Assert
         actual.Should().NotBeNull();
         actual.Should().Be(expected);
 
         actual.LogAsJson();
     }
 
-
+    // Tests retrieving a product by ID
     [Test]
     public async Task GetProductByIdAsync_ShouldReturnProduct()
     {
         var expected = (await _productApiHelper.GetAllProductsAsync()).SelectRandom();
 
         var actual = await _productApiHelper.GetProductByIdAsync(expected.Id);
-        // Assert
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
 
         expected.LogAsJson();
     }
 
+    // Tests updating a product
     [Test]
     public async Task UpdateProductAsync_ShouldUpdateProduct()
     {
@@ -82,20 +82,19 @@ internal class ProductApiTests
         expected.Category += " - Updated";
         expected.Image = "https://example.com/updated-image.jpg";
         
-        // Act
         var response = await _productApiHelper.UpdateProductAsync(expected.Id, expected);
 
-        var actual = expected; // Since API doesn't persist, mock the response
+        // Since API doesn't persist, mock the response
+        var actual = expected; 
 
-        // Assert
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
     }
 
+    // Tests deleting a product
     [Test]
     public async Task DeleteProductAsync_ShouldDeleteProduct()
     {
-        // Arrange
         var expected = new Product
         {
             Title = "New Product",
@@ -106,10 +105,7 @@ internal class ProductApiTests
         };
         var response = await _productApiHelper.AddProductAsync(expected);
 
-        // Act
         var result = await _productApiHelper.DeleteProductAsync(response.Id);
-
-        // Assert
         result.Should().BeTrue();
 
         var actual = await _productApiHelper.GetProductByIdAsync(response.Id);

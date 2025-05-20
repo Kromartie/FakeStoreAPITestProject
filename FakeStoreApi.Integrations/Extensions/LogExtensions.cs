@@ -2,6 +2,8 @@
 using System.Text.Json;
 
 namespace FakeStoreApi.Integrations.Extensions;
+
+// Extension methods for logging objects and lists
 public static class LogExtensions
 {
     // Logs a message as Json.

@@ -1,5 +1,6 @@
 ﻿namespace FakeStoreApi.Integrations.Entities;
 
+// Represents a product in the store
 public class Product
 {
     public int Id { get; set; }

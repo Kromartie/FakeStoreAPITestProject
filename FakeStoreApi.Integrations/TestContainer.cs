@@ -23,6 +23,8 @@ public static class TestContainer
             var configuration = context.Configuration.GetSection(ApiConfig.API);
             services.Configure<ApiConfig>(configuration);
             services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<ApiConfig>>().Value);
+
+            services.AddSingleton(provider => new HttpClient());
             services.AddSingleton<IProductApiHelper, ProductApiHelper>();
             services.AddSingleton<ICartApiHelper, CartApiHelper>();
             services.AddSingleton<IAuthApiHelper, AuthApiHelper>();

@@ -10,7 +10,7 @@ FakeStoreAPITestProject is a simple API test framework designed to validate the 
 
 ## Technologies
 - **Language:** C#
-- **Frameworks:** Likely includes NUnit, xUnit, or a similar testing framework.
+- **Frameworks:** Includes NUnit for simple testing framework.
 
 ## Getting Started
 1. Clone the repository:
